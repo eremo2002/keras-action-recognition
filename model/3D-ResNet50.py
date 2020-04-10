@@ -1,9 +1,8 @@
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.models import Sequential, Model
-from tensorflow.keras.layers import Input, BatchNormalization, Activation, Conv3D, Dropout, Concatenate, AveragePooling3D, MaxPooling3D, Dense, Flatten, GlobalAveragePooling2D, GlobalAveragePooling3D, ZeroPadding2D
+from tensorflow.keras.layers import Input, BatchNormalization, Activation, Conv3D, Dropout, Concatenate, AveragePooling3D, MaxPooling3D, Dense, Flatten, GlobalAveragePooling3D, ZeroPadding2D
 from tensorflow.keras.activations import linear, softmax
-from tensorflow.keras.applications import densenet, nasnet
 
 
 """
