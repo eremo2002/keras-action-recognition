@@ -1,5 +1,3 @@
-# import c
-import os
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.models import Sequential, Model
@@ -8,7 +6,14 @@ from tensorflow.keras.activations import linear, softmax
 from tensorflow.keras.applications import densenet, nasnet
 
 
+"""
+expand 2D-ResNet50 to 3D-ResNet50
 
+I referenced 2D-ResNet architecture fchollet's keras code(below link)
+https://github.com/fchollet/deep-learning-models/blob/master/resnet50.py
+
+
+"""
 
 
 
@@ -85,53 +90,9 @@ def conv_block(input_tensor, kernel_size, filters, stage, block, strides=(1, 2, 
     return x
 
 
-def ResNet50(input_shape=None, classes=1000):
-    """Instantiates the ResNet50 architecture.
-    Optionally loads weights pre-trained
-    on ImageNet. Note that when using TensorFlow,
-    for best performance you should set
-    `image_data_format="channels_last"` in your Keras config
-    at ~/.keras/keras.json.
-    The model and the weights are compatible with both
-    TensorFlow and Theano. The data format
-    convention used by the model is the one
-    specified in your Keras config file.
-    # Arguments
-        include_top: whether to include the fully-connected
-            layer at the top of the network.
-        weights: one of `None` (random initialization)
-            or "imagenet" (pre-training on ImageNet).
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-            to use as image input for the model.
-        input_shape: optional shape tuple, only to be specified
-            if `include_top` is False (otherwise the input shape
-            has to be `(224, 224, 3)` (with `channels_last` data format)
-            or `(3, 224, 244)` (with `channels_first` data format).
-            It should have exactly 3 inputs channels,
-            and width and height should be no smaller than 197.
-            E.g. `(200, 200, 3)` would be one valid value.
-        pooling: Optional pooling mode for feature extraction
-            when `include_top` is `False`.
-            - `None` means that the output of the model will be
-                the 4D tensor output of the
-                last convolutional layer.
-            - `avg` means that global average pooling
-                will be applied to the output of the
-                last convolutional layer, and thus
-                the output of the model will be a 2D tensor.
-            - `max` means that global max pooling will
-                be applied.
-        classes: optional number of classes to classify images
-            into, only to be specified if `include_top` is True, and
-            if no `weights` argument is specified.
-    # Returns
-        A Keras model instance.
-    # Raises
-        ValueError: in case of invalid argument for `weights`,
-            or invalid input shape.
-    """
+def ResNet50(input_shape=None, classes=1000):    
    
-    inp_3d = (Input(shape=input_shape, name='3d_input'))
+    input_3d = (Input(shape=input_shape, name='3d_input'))
 
     x = Conv3D(64, (3, 7, 7), strides=(2, 2, 2), padding='same', name='conv1')(inp_3d)
     x = BatchNormalization(axis=4, name='bn_conv1')(x)
@@ -167,12 +128,11 @@ def ResNet50(input_shape=None, classes=1000):
    
 
     # Create model.
-    model = Model(inp_3d, x, name='resnet50')
+    model = Model(input_3d, x, name='resnet50')
     model.summary()
         
     return model
 
 
 if __name__ == '__main__':
-    model = ResNet50(input_shape=(16, 224, 224, 3), classes=50)
-    model.summary()
+    model = ResNet50(input_shape=(16, 224, 224, 3), classes=1000)
