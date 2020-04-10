@@ -11,7 +11,6 @@ expand 2D-ResNet50 to 3D-ResNet50
 I referenced 2D-ResNet architecture fchollet's keras code(below link)
 https://github.com/fchollet/deep-learning-models/blob/master/resnet50.py
 
-
 """
 
 
