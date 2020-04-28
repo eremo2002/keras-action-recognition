@@ -83,10 +83,10 @@ class VideoDataGenerator(tf.keras.utils.Sequence):
         frames = frames[::step]
         frames = frames[:self.fpv]
 
-        for i in range(0, 8):                                        
-                    cv2.imshow('single clip frmae', frames[i])
-                    cv2.waitKey(0)
-        cv2.destroyAllWindows()
+#         for i in range(0, 8):                                        
+#                     cv2.imshow('single clip frmae', frames[i])
+#                     cv2.waitKey(0)
+#         cv2.destroyAllWindows()
         
         y = to_categorical(action_class, num_classes=self.num_classes)
         
