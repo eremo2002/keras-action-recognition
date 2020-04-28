@@ -27,7 +27,7 @@ class VideoDataGenerator(tf.keras.utils.Sequence):
 
     def __getitem__(self, index):
         indexes = self.indexes[index*self.batch_size:(index+1)*self.batch_size]        
-        print('indexes ', indexes)
+#         print('indexes ', indexes)
 
         images = []
         clip = []
