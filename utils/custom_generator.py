@@ -6,7 +6,7 @@ from tensorflow.keras.utils import to_categorical
 import random
 
 '''
-this generator returns 'single image' and '8 frmaes clip'
+this generator returns 'single image' and 'video clip'
 '''
 
 class VideoDataGenerator(tf.keras.utils.Sequence):
