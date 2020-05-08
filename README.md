@@ -4,8 +4,9 @@
 ## train
 ```python
 python train.py --input xxx --model xxx
+```
 
-
+```sh
 --input 
     frame_clip, frame_flow, clip
   
