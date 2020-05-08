@@ -2,7 +2,6 @@ import tensorflow as tf
 from tensorflow.keras.layers import Conv3D, MaxPooling3D, Input, Dense, Dropout, MaxPool3D, Flatten, Activation
 from tensorflow.keras.models import Sequential, Model
 
-
 def C3D_model(input_shape, nb_classes):
     inp_3d = Input(shape=(input_shape), name='3d_input')
 
