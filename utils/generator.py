@@ -8,10 +8,8 @@ import imgaug.augmenters as iaa
 
 '''
 Frame_Clip_DataGenerator returns 'single frame', 'video clip', 'label'
-Clip_DataGenerator returns 'video clip', 'label'
 Frame_Flow_DataGenerator returns 'single frame', 'optical flow', 'label'
-Clip_Flow_DataGenerator returns 'video clip', 'optical flow', 'label'
-
+Clip_DataGenerator returns 'video clip', 'label'
 '''
 
 
@@ -100,78 +98,6 @@ class Frame_Clip_DataGenerator(tf.keras.utils.Sequence):
         y = to_categorical(action_class, num_classes=self.num_classes)
         
         return frames[-1], frames, y
-
-        
-class Clip_DataGenerator(tf.keras.utils.Sequence):
-    def __init__(self, dataframe, fpv, height, width, channels, num_classes, frame_step, batch_size, shuffle=True):   
-        self.dataframe = pd.read_csv(dataframe, index_col=False)        
-        self.fpv = fpv
-        self.height = height
-        self.width = width
-        self.channels = channels
-        self.num_classes = num_classes
-        self.frame_step = frame_step
-        self.batch_size = batch_size        
-        self.shuffle = shuffle
-        self.on_epoch_end()
-        
-
-    def __len__(self):        
-        return int(np.floor(len(self.dataframe) / self.batch_size))
-
-    def __getitem__(self, index):
-        indexes = self.indexes[index*self.batch_size:(index+1)*self.batch_size]        
-        
-        clip = []
-        labels = []
-        
-        for i in indexes:        
-            input_3d, y = self.get_data(i)
-
-            
-            clip.append(input_3d)
-            labels.append(y)
-        return (np.array(clip)/255.0), np.array(labels)
-        
-
-
-    def on_epoch_end(self):
-        self.indexes = np.arange(len(self.dataframe))
-        if self.shuffle == True:
-            np.random.shuffle(self.indexes)
-    
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        return self.next()
-
-    def get_data(self, idx):
-        video = self.dataframe['path'].values[idx]        
-        action_class = self.dataframe['class'].values[idx]
-
-        cap = cv2.VideoCapture(video)
-
-        frames = []
-
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                break
-        
-            frame = cv2.resize(frame, (self.height, self.width))
-            frames.append(frame)
-        
-        cap.release()
-
-        rnd_init_index = random.randint(0, len(frames)//2)
-        final_index = (self.fpv * self.frame_step) + rnd_init_index
-
-        frames = frames[rnd_init_index:final_index:(self.frame_step)]
-
-        y = to_categorical(action_class, num_classes=self.num_classes)
-        
-        return frames, y
 
         
 class Frame_Flow_DataGenerator(tf.keras.utils.Sequence):
@@ -279,7 +205,7 @@ class Frame_Flow_DataGenerator(tf.keras.utils.Sequence):
         return frames[-1], flow_list, y
 
 
-class Clip_Flow_DataGenerator(tf.keras.utils.Sequence):
+
     def __init__(self, dataframe, fpv, height, width, channels, num_classes, frame_step, batch_size, shuffle=True):   
         self.dataframe = pd.read_csv(dataframe, index_col=False)        
         self.fpv = fpv
@@ -309,6 +235,8 @@ class Clip_Flow_DataGenerator(tf.keras.utils.Sequence):
             clip.append(input_clip)
             flow.append(input_flow)
             labels.append(y)
+
+
         return (np.array(clip)/255.0, np.array(flow)/255.0), np.array(labels)
         
 
@@ -382,5 +310,80 @@ class Clip_Flow_DataGenerator(tf.keras.utils.Sequence):
 
         y = to_categorical(action_class, num_classes=self.num_classes)
         
+        
         return frames, flow_list, y
 
+
+
+class Clip_DataGenerator(tf.keras.utils.Sequence):
+    def __init__(self, dataframe, fpv, height, width, channels, num_classes, frame_step, batch_size, shuffle=True):   
+        self.dataframe = pd.read_csv(dataframe, index_col=False)        
+        self.fpv = fpv
+        self.height = height
+        self.width = width
+        self.channels = channels
+        self.num_classes = num_classes
+        self.frame_step = frame_step
+        self.batch_size = batch_size        
+        self.shuffle = shuffle
+        self.on_epoch_end()
+        
+
+    def __len__(self):        
+        return int(np.floor(len(self.dataframe) / self.batch_size))
+
+    def __getitem__(self, index):
+        indexes = self.indexes[index*self.batch_size:(index+1)*self.batch_size]        
+        
+        clip = []
+        labels = []
+        
+        for i in indexes:        
+            input_3d, y = self.get_data(i)
+
+            
+            clip.append(input_3d)
+            labels.append(y)
+        return (np.array(clip)/255.0), np.array(labels)
+        
+
+
+    def on_epoch_end(self):
+        self.indexes = np.arange(len(self.dataframe))
+        if self.shuffle == True:
+            np.random.shuffle(self.indexes)
+    
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        return self.next()
+
+    def get_data(self, idx):
+        video = self.dataframe['path'].values[idx]        
+        action_class = self.dataframe['class'].values[idx]
+
+        cap = cv2.VideoCapture(video)
+
+        frames = []
+
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
+        
+            frame = cv2.resize(frame, (self.height, self.width))
+            frames.append(frame)
+        
+        cap.release()
+
+        rnd_init_index = random.randint(0, len(frames)//2)
+        final_index = (self.fpv * self.frame_step) + rnd_init_index
+
+        frames = frames[rnd_init_index:final_index:(self.frame_step)]
+
+        y = to_categorical(action_class, num_classes=self.num_classes)
+        
+        return frames, y
+
+        
