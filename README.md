@@ -16,3 +16,6 @@ python train.py --input xxx --model xxx
 
 
 
+## model reference
+[SlowFast]https://github.com/xuzheyuan624/slowfast-keras
+https://github.com/rekon/T3D-keras
