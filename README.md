@@ -2,7 +2,9 @@
 
 
 ## train
-
+```python 
+python train.py --input xxx --model xxx
+```
 
 ```sh
 --input 
