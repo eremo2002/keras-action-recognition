@@ -1,7 +1,5 @@
 import tensorflow as tf
 from tensorflow import keras
-
-
 from tensorflow.keras.models import Sequential, Model
 from tensorflow.keras.layers import Input, BatchNormalization, Activation, Conv3D, Dropout, AveragePooling3D, MaxPooling3D
 from tensorflow.keras.layers import  Dense, Flatten, GlobalAveragePooling2D, GlobalAveragePooling3D
@@ -71,7 +69,7 @@ def _TTL(prev_layer, temporal_size=[1, 3, 4]):
 
 def DenseNet3D(input_shape, growth_rate=32, block_config=(6, 12, 24, 16),
                num_init_features=64, bn_size=4, drop_rate=0.6, num_classes=5):
-    r"""Densenet-BC model class, based on
+    """Densenet-BC model class, based on
     `"Densely Connected Convolutional Networks" <https://arxiv.org/pdf/1608.06993.pdf>`
     Args:
         growth_rate (int) - how many filters to add each layer (`k` in paper)
