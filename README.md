@@ -1,5 +1,8 @@
 # keras-action-recognition
 
 
-# train
+## train
+```python
 python train.py --input xxx --model xxx
+```
+
