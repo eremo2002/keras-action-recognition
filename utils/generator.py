@@ -4,7 +4,7 @@ import pandas as pd
 import tensorflow as tf
 from tensorflow.keras.utils import to_categorical
 import random
-import imgaug.augmenters as iaa
+#import imgaug.augmenters as iaa
 
 '''
 Frame_Clip_DataGenerator returns 'single frame', 'video clip', 'label'
@@ -29,68 +29,64 @@ class Frame_Clip_DataGenerator(tf.keras.utils.Sequence):
     def __len__(self):        
         return int(np.floor(len(self.dataframe) / self.batch_size))
 
+
     def __getitem__(self, index):
         indexes = self.indexes[index*self.batch_size:(index+1)*self.batch_size]        
-        # print('indexes ', indexes)
-
-        images = []
-        clip = []
-        labels = []
         
-        for i in indexes:        
-            input_2d, input_3d, y = self.get_data(i)
+        x_list = [self.dataframe['path'].values[k] for k in indexes]
+        y_list = [self.dataframe['class'].values[k] for k in indexes]
 
-            images.append(input_2d)
-            clip.append(input_3d)
-            labels.append(y)
-        return (np.array(images)/255.0, np.array(clip)/255.0), np.array(labels)       
+        img, clip, y = self.get_data(x_list, y_list)
+
+        return (img, clip), y    
 
 
     def on_epoch_end(self):
         self.indexes = np.arange(len(self.dataframe))
         if self.shuffle == True:
             np.random.shuffle(self.indexes)
+
     
     def __iter__(self):
         return self
 
+
     def __next__(self):
         return self.next()
 
-    def get_data(self, idx):
-        video = self.dataframe['path'].values[idx]        
-        action_class = self.dataframe['class'].values[idx]
 
-        cap = cv2.VideoCapture(video)
+    def get_data(self, x_list, y_list):
 
-        frames = []
+        img = np.empty((self.batch_size, self.height, self.width, self.channels))
+        clip = np.empty((self.batch_size, self.fpv, self.height, self.width, self.channels))
+        y = np.empty((self.batch_size))
 
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                break
-        
-            frame = cv2.resize(frame, (self.height, self.width))
-            frames.append(frame)
-        
-        cap.release()
+        for i in range (0, self.batch_size):
+            
+            cap = cv2.VideoCapture(x_list[i])
+            frames = []
 
-        rnd_init_index = random.randint(0, len(frames)//2)
-        final_index = (self.fpv * self.frame_step) + rnd_init_index
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    break
+            
+                frame = cv2.resize(frame, (self.height, self.width))
+                frames.append(frame)
+            
+            cap.release()
 
-        frames = frames[rnd_init_index:final_index:(self.frame_step)]
+            rnd_init_index = random.randint(0, len(frames)//2)
+            final_index = (self.fpv * self.frame_step) + rnd_init_index
+            frames = frames[rnd_init_index:final_index:(self.frame_step)]
+            
+            img[i] = frames[-1]
+            clip[i] = frames            
+            
+        y = to_categorical(y_list, num_classes=self.num_classes)
 
-        # for i, _ in enumerate(frames):
-        #     frames[i] = cv2.resize(frames[i], (self.height, self.width))
-        
-        # for i in range(0, 8):                                        
-        #             cv2.imshow('single clip frmae', frames[i])
-        #             cv2.waitKey(0)
-        # cv2.destroyAllWindows()
-
-        y = to_categorical(action_class, num_classes=self.num_classes)
-        
-        return frames[-1], frames, y
+        return img/255.0, clip/255.0, y
+  
 
         
 class Frame_Flow_DataGenerator(tf.keras.utils.Sequence):
@@ -109,89 +105,95 @@ class Frame_Flow_DataGenerator(tf.keras.utils.Sequence):
     def __len__(self):        
         return int(np.floor(len(self.dataframe) / self.batch_size))
 
+
     def __getitem__(self, index):
         indexes = self.indexes[index*self.batch_size:(index+1)*self.batch_size]        
         
-        images = []
-        flow = []
-        labels = []
-        
-        for i in indexes:        
-            input_2d, input_3d, y = self.get_data(i)
-            
-            images.append(input_2d)
-            flow.append(input_3d)
-            labels.append(y)
-        return (np.array(images)/255.0, np.array(flow)/255.0), np.array(labels)     
+        x_list = [self.dataframe['path'].values[k] for k in indexes]
+        y_list = [self.dataframe['class'].values[k] for k in indexes]
+
+        img, flow, y = self.get_data(x_list, y_list)
+
+        return (img, flow), y    
+
 
     def on_epoch_end(self):
         self.indexes = np.arange(len(self.dataframe))
         if self.shuffle == True:
             np.random.shuffle(self.indexes)
+
     
     def __iter__(self):
         return self
 
+
     def __next__(self):
         return self.next()
-
-    def get_data(self, idx):
-        video = self.dataframe['path'].values[idx]        
-        action_class = self.dataframe['class'].values[idx]
-
-        cap = cv2.VideoCapture(video)
-
-        frames = []
-
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                break
         
-            frame = cv2.resize(frame, (self.height, self.width))
-            frames.append(frame)
-        
-        cap.release()
 
-        rnd_init_index = random.randint(0, len(frames)//2)
-        final_index = (self.fpv * self.frame_step) + rnd_init_index
+    def get_data(self, x_list, y_list):
 
-        frames = frames[rnd_init_index:(final_index+self.frame_step):self.frame_step]
+        img = np.empty((self.batch_size, self.height, self.width, self.channels))
+        flows = np.empty((self.batch_size, self.fpv, self.height, self.width, self.channels))
+        y = np.empty((self.batch_size))
 
-        '''
-        calculate optical flow
-        '''
-        flow_list = []
-        
-        prev_frame = cv2.cvtColor(frames[0], cv2.COLOR_BGR2GRAY)
-        hsv = np.zeros_like(frames[0])
-        hsv[...,1] = 255
-
-        i = 1
-        while i < len(frames):
-            next_frame = frames[i]
-            next_frame = cv2.cvtColor(next_frame, cv2.COLOR_BGR2GRAY)
-
-            flow = cv2.calcOpticalFlowFarneback(prev_frame, next_frame, None, 0.5, 3, 15, 3, 5, 1.2, 0)
-            mag, ang = cv2.cartToPolar(flow[...,0], flow[...,1])
-            hsv[...,0] = ang*180/np.pi/2
-            hsv[...,2] = cv2.normalize(mag,None,0,255,cv2.NORM_MINMAX)
-            optical_flow = cv2.cvtColor(hsv,cv2.COLOR_HSV2RGB)       
+        for i in range (0, self.batch_size):
             
-            flow_list.append(optical_flow)
+            cap = cv2.VideoCapture(x_list[i])
+            frames = []
 
-            prev_frame = next_frame
-            i = i+1
-        
-        # for i in range(0, 8):                                        
-        #     cv2.imshow('check', flow_list[i])
-        #     cv2.waitKey(0)
-        # cv2.destroyAllWindows()
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    break
+            
+                frame = cv2.resize(frame, (self.height, self.width))
+                frames.append(frame)
+            
+            cap.release()
 
-        y = to_categorical(action_class, num_classes=self.num_classes)
-        
-        return frames[-1], flow_list, y
+            rnd_init_index = random.randint(0, len(frames)//2)
+            final_index = (self.fpv * self.frame_step) + rnd_init_index
+            frames = frames[rnd_init_index:(final_index+self.frame_step):self.frame_step]
+            
 
+
+            '''
+            calculate optical flow
+            '''
+            flow_list = []
+            
+            prev_frame = cv2.cvtColor(frames[0], cv2.COLOR_BGR2GRAY)
+            hsv = np.zeros_like(frames[0])
+            hsv[...,1] = 255
+
+            j = 1
+            while j < len(frames):
+                next_frame = frames[j]
+                next_frame = cv2.cvtColor(next_frame, cv2.COLOR_BGR2GRAY)
+
+                flow = cv2.calcOpticalFlowFarneback(prev_frame, next_frame, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+                mag, ang = cv2.cartToPolar(flow[...,0], flow[...,1])
+                hsv[...,0] = ang*180/np.pi/2
+                hsv[...,2] = cv2.normalize(mag,None,0,255,cv2.NORM_MINMAX)
+                optical_flow = cv2.cvtColor(hsv,cv2.COLOR_HSV2RGB)       
+                
+                flow_list.append(optical_flow)
+
+                prev_frame = next_frame
+                j = j+1
+            
+            # for i in range(0, self.fpv):                                        
+            #     cv2.imshow('check', flow_list[i])
+            #     cv2.waitKey(0)
+            # cv2.destroyAllWindows()
+
+            img[i] = frames[-1]
+            flows[i] = flow_list            
+            
+        y = to_categorical(y_list, num_classes=self.num_classes)
+
+        return img/255.0, flows, y
 
 
 class Clip_DataGenerator(tf.keras.utils.Sequence):
@@ -213,17 +215,13 @@ class Clip_DataGenerator(tf.keras.utils.Sequence):
     def __getitem__(self, index):
         indexes = self.indexes[index*self.batch_size:(index+1)*self.batch_size]        
         
-        clip = []
-        labels = []
-        
-        for i in indexes:        
-            input_3d, y = self.get_data(i)
+        x_list = [self.dataframe['path'].values[k] for k in indexes]
+        y_list = [self.dataframe['class'].values[k] for k in indexes]
+        # print(x_list, y_list)
 
-            
-            clip.append(input_3d)
-            labels.append(y)
-        return (np.array(clip)/255.0), np.array(labels)
-        
+        clip, y = self.get_data(x_list, y_list)
+
+        return clip, y
 
 
     def on_epoch_end(self):
@@ -237,31 +235,32 @@ class Clip_DataGenerator(tf.keras.utils.Sequence):
     def __next__(self):
         return self.next()
 
-    def get_data(self, idx):
-        video = self.dataframe['path'].values[idx]        
-        action_class = self.dataframe['class'].values[idx]
+    def get_data(self, x_list, y_list):
 
-        cap = cv2.VideoCapture(video)
+        clip = np.empty((self.batch_size, self.fpv, self.height, self.width, self.channels))
+        y = np.empty((self.batch_size))
 
-        frames = []
+        for i in range (0, self.batch_size):
+            
+            cap = cv2.VideoCapture(x_list[i])
+            frames = []
 
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                break
-        
-            frame = cv2.resize(frame, (self.height, self.width))
-            frames.append(frame)
-        
-        cap.release()
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    break
+            
+                frame = cv2.resize(frame, (self.height, self.width))
+                frames.append(frame)
+            
+            cap.release()
 
-        rnd_init_index = random.randint(0, len(frames)//2)
-        final_index = (self.fpv * self.frame_step) + rnd_init_index
+            rnd_init_index = random.randint(0, len(frames)//2)
+            final_index = (self.fpv * self.frame_step) + rnd_init_index
+            frames = frames[rnd_init_index:final_index:(self.frame_step)]
+            
+            clip[i] = frames            
+            
+        y = to_categorical(y_list, num_classes=self.num_classes)
 
-        frames = frames[rnd_init_index:final_index:(self.frame_step)]
-
-        y = to_categorical(action_class, num_classes=self.num_classes)
-        
-        return frames, y
-
-        
+        return clip/255.0, y
