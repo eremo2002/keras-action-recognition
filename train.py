@@ -14,6 +14,7 @@ import tensorflow.keras.backend as K
 from model.C3D import C3D_model
 from model.T3D import densenet169_3D_DropOut, densenet121_3D_DropOut, DenseNet3D
 from model.SlowFast import SlowFast_Network
+from model.I3D import Inception_Inflated3d
 
 from utils.generator import Frame_Clip_DataGenerator, Clip_DataGenerator, Frame_Flow_DataGenerator
 from utils.result_graph import plot_history, save_history
@@ -21,14 +22,14 @@ from utils.result_graph import plot_history, save_history
 
 
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 
 FRAMES_PER_VIDEO = 8
 FRAME_HEIGHT = 256
 FRAME_WIDTH = 256
 FRAME_CHANNEL = 3
-FRAME_STEP = 4
+FRAME_STEP = 2
 BATCH_SIZE = 8
 EPOCHS = 200
 result_path = 'result/'
@@ -59,7 +60,7 @@ def train():
     T3D_support = ('frame_clip', 'frame_flow')
     C3D_support = ('clip')
     SlowFast_support = ('clip')
-
+    I3D_support = ('clip')
 
     if args.input == 'frame_clip':
         video_train_generator = Frame_Clip_DataGenerator('train.csv', 
@@ -126,6 +127,14 @@ def train():
             print('SlowFast only support --input clip')
             return
         model = SlowFast_Network(input_tensor.shape, nb_classes)
+    elif args.model == 'I3D':
+        if args.input not in I3D_support:
+            print('I3D only support --input clip')
+            return
+        if FRAMES_PER_VIDEO < 16:
+            print('I3D needs FRAMES_PER_VIDEO > 8')
+            return
+        model = Inception_Inflated3d(input_tensor.shape, nb_classes)
 
    
      # model = multi_gpu_model(model, gpus=2)
