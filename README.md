@@ -11,7 +11,7 @@ python train.py --input xxx --model xxx
     frame_clip, frame_flow, clip
   
 --model
-    T3D-densenet121, T3D-densenet169, C3D, SlowFast
+    T3D-densenet121, T3D-densenet169, C3D, SlowFast, I3D
 ```
 
 
@@ -20,3 +20,5 @@ python train.py --input xxx --model xxx
 [SlowFast](https://github.com/xuzheyuan624/slowfast-keras)
 <br>
 [T3D](https://github.com/rekon/T3D-keras)
+<br>
+[I3D](https://github.com/dlpbc/keras-kinetics-i3d)
