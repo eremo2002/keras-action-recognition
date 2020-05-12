@@ -16,7 +16,7 @@ python train.py --input xxx --model xxx
 
 ## dataset
 data.csv
-
+```sh
 path, class
 data/0/0001.mp4, 0
 data/0/0002.mp4, 0
@@ -28,6 +28,7 @@ data/2/0001.mp4, 2
 data/2/0002.mp4, 2
 data/2/0003.mp4, 2
 ...
+```
 
 ## model reference
 [SlowFast](https://github.com/xuzheyuan624/slowfast-keras)
