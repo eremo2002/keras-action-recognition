@@ -15,8 +15,9 @@ python train.py --input xxx --model xxx
 ```
 
 ## dataset
-data.csv
+
 ```sh
+data.csv
 path, class
 data/0/0001.mp4, 0
 data/0/0002.mp4, 0
